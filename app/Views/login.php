@@ -135,7 +135,7 @@ LC
 
 <div class="register-link">
 Belum punya akun? 
-<a href="<?= base_url('register') ?>">Buat Akun</a>
+<a href="<?= base_url('public/register') ?>">Buat Akun</a>
 </div>
 
 </form>
