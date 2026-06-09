@@ -22,9 +22,7 @@
         .card-history { border: none; border-radius: 35px; padding: 35px; background: white; box-shadow: 0 4px 25px rgba(0,0,0,0.05); }
         .table thead th { border: none; color: #8A92A6; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
         .table tbody td { border-top: 1px solid #f8f9fa; padding: 20px 0; }
-        
         .badge-pay { background-color: #EBF1FA; color: #5f4bd8; border-radius: 20px; padding: 6px 15px; font-size: 0.75rem; font-weight: 600; }
-        
         .summary-box { background-color: #f8f9fa; border-radius: 20px; padding: 25px; }
 
         @media (max-width: 992px) { 
@@ -35,10 +33,8 @@
 <body>
 
 <?= view('sidebar') ?>
-
 <div class="main-content">
-   
-     <div class="d-flex justify-content-between align-items-center mb-5 bg-white p-3 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-5 bg-white p-3 rounded-4 shadow-sm">
     <div class="d-flex align-items-center">
         <div>
             <h1 class="fw-bold h3 mb-0" style="color: #0f0c29;">Rincian Transaksi</h1>

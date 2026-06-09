@@ -53,8 +53,8 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-8">
-            <div class="card-custom mb-4">
+        <div class="col-lg-15">
+            <div class="card-custom mb-6">
                 <form action="<?= base_url('admin/update_pengaturan') ?>" method="post" enctype="multipart/form-data" id="formPengaturan">
                     <div class="row">
                         <div class="col-md-4 text-center mb-4 border-end d-flex flex-column justify-content-center">
@@ -115,15 +115,6 @@
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="card-custom bg-white border-0" style="padding: 25px;">
-                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i> Tips</h6>
-                <p class="small text-muted mb-2">1. <strong>Logo:</strong> Gunakan gambar rasio 1:1 untuk tampilan terbaik.</p>
-                <p class="small text-muted mb-2">2. <strong>Pajak:</strong> Persentase pajak ini muncul otomatis di kasir.</p>
-                <p class="small text-muted">3. <strong>Pesan:</strong> Akan muncul di bagian footer struk belanja.</p>
             </div>
         </div>
     </div>

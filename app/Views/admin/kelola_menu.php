@@ -58,23 +58,31 @@
     </div>
 
     <div class="table-card">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-            <div class="d-flex gap-3 flex-grow-1 w-100 w-md-50">
-                <div class="position-relative flex-grow-1">
-                    <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 11px;"></i>
-                    <input type="text" id="searchInput" class="form-control ps-5 border-0 bg-light shadow-none" placeholder="Cari Menu..." style="border-radius:12px; height: 45px;">
-                </div>
-                <div class="position-relative">
-                    <select id="categoryFilter" class="form-select border-0 bg-light shadow-none" style="border-radius:12px; height: 45px; min-width: 160px; cursor: pointer;">
-                        <option value="all">Semua Kategori</option>
-                        <?php foreach ($daftar_kategori as $kat) : ?>
-                            <option value="<?= $kat['nama_kategori'] ?>"><?= $kat['nama_kategori'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+    <div class="d-flex flex-column flex-md-row justify-content-start align-items-md-center gap-3 mb-4">
+        
+        <div class="d-flex gap-3">
+            <div class="position-relative" style="width: 250px;">
+                <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 11px;"></i>
+                <input type="text" id="searchInput" class="form-control ps-5 border-0 bg-light shadow-none" placeholder="Cari Menu..." style="border-radius:12px; height: 45px;">
             </div>
-            <button class="btn btn-tambah text-nowrap" data-bs-toggle="modal" data-bs-target="#modalTambah"><i class="bi bi-plus-lg me-2"></i> Tambah Menu</button>
+            
+            <div class="position-relative">
+                <select id="categoryFilter" class="form-select border-0 bg-light shadow-none" style="border-radius:12px; height: 45px; min-width: 160px; cursor: pointer;">
+                    <option value="all">Semua Kategori</option>
+                    <?php foreach ($daftar_kategori as $kat) : ?>
+                        <option value="<?= $kat['nama_kategori'] ?>"><?= $kat['nama_kategori'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
         </div>
+
+        <div class="ms-md-auto">
+            <button class="btn btn-tambah text-nowrap" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                <i class="bi bi-plus-lg me-2"></i> Tambah Menu
+            </button>
+        </div>
+    </div>
+</div>
 
         <div class="table-responsive">
             <table class="table align-middle text-center" id="menuTable">
