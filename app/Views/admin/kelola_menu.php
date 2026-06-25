@@ -143,7 +143,7 @@
                                 data-status="<?= $m['status'] ?>">
                                 <i class="bi bi-pencil-square fs-5"></i>
                             </button>
-                            <a href="<?= base_url('admin/menu/hapus_menu/' . $m['id_menu']) ?>" class="btn btn-sm btn-outline-danger border-0 btn-hapus"><i class="bi bi-trash fs-5"></i></a>
+                            <a href="<?= base_url('admin/menu/hapus_menu/' . $m['id_menu']) ?>" class="btn btn-sm btn-outline-danger border-0 btn-hapus" data-nama="<?= $m['nama_menu'] ?>"><i class="bi bi-trash fs-5"></i></a>
                         </td>
                     </tr>
                     <?php endforeach; endif; ?>
@@ -173,9 +173,9 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="label-minimal">Harga</label>
-                        <input type="number" name="harga" class="form-control input-minimal" required>
-                    </div>
+    <label class="label-minimal">Harga (Rp)</label>
+    <input type="number" name="harga" id="edit-harga" class="form-control input-minimal" min="0" required>
+</div>
                     <div class="mb-4">
                         <label class="label-minimal">Foto Menu</label>
                         <input type="file" name="foto" class="form-control input-minimal" required accept="image/*">
@@ -284,28 +284,38 @@
     });
 
     document.querySelectorAll('.btn-hapus').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const href = this.getAttribute('href');
-            Swal.fire({
-                title: 'Hapus Menu?',
-                text: "Menu yang dihapus tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#6c4cff',
-                cancelButtonColor: '#A3AED0',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) { 
-                    window.location.href = href; 
-                }
-            });
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        const namaMenu = this.getAttribute('data-nama'); 
+
+        Swal.fire({
+            title: 'Hapus Menu?',
+            html: `Yakin ingin menghapus menu <b>${namaMenu}</b>?<br>Data tidak bisa dikembalikan!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#A3AED0',
+            confirmButtonText: '<i class="bi bi-trash"></i> Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) { 
+                window.location.href = href; 
+            }
         });
     });
+});
 
     <?php if (session()->getFlashdata('success')) : ?>
         Swal.fire({ icon: 'success', title: 'Berhasil!', text: '<?= session()->getFlashdata('success') ?>', timer: 2000, showConfirmButton: false });
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')) : ?>
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Gagal!', 
+            text: '<?= session()->getFlashdata('error') ?>', 
+            confirmButtonColor: '#6c4cff' 
+        });
     <?php endif; ?>
 </script>
 </body>

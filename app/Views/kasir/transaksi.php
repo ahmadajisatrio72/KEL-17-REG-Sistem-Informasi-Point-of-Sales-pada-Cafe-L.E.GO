@@ -249,6 +249,9 @@
         cekValidasi();
     }
     
+   // 🔴 TAMBAHKAN VARIABEL INI DI ATAS FUNGSI
+    let metodeSebelumnya = 'Cash'; 
+
     function cekValidasi() {
         const metode = document.getElementById('metodeBayar').value;
         const inputUang = document.getElementById('uangBayar');
@@ -256,14 +259,26 @@
         const btn = document.getElementById('btnSubmit');
         const nama = document.getElementById('nama_pelanggan').value.trim();
         const textKembalian = document.getElementById('textKembalian');
+        
         if (cart.length === 0 || nama === "") {
             btn.disabled = true;
             return;
         }
+
+        // 🔴 BUG FIX: Kosongkan kotak uang kalau kasir ganti pikiran dari QRIS balik ke Cash
+        if (metode === 'Cash' && metodeSebelumnya === 'QRIS') {
+            inputUang.value = ''; 
+            textKembalian.innerText = 'Rp 0';
+        }
+        
+        // Update ingatan sistem ke metode yang baru dipilih
+        metodeSebelumnya = metode; 
+
         if (metode === 'Cash') {
             sectionCash.style.display = 'block'; 
             const bayar = parseInt(inputUang.value) || 0;
             const kembalian = bayar - totalBelanja;
+            
             if (bayar >= totalBelanja && totalBelanja > 0) {
                 textKembalian.innerText = 'Rp ' + kembalian.toLocaleString('id-ID');
                 btn.disabled = false;

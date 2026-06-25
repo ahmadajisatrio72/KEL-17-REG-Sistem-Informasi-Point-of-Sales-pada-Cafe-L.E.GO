@@ -20,15 +20,19 @@ class Admin extends BaseController
             'pengaturan' => $pengaturanModel->first() 
         ];
     }
-    public function index()
+public function index()
     {
         $db = \Config\Database::connect();
 
+        
         $omzet = $db->table('transaksi')
                     ->selectSum('total_bayar') 
+                    ->where('DATE(tgl_transaksi)', date('Y-m-d'))
                     ->get()->getRow()->total_bayar ?? 0;
+        $jmlTransaksi = $db->table('transaksi')
+                    ->where('DATE(tgl_transaksi)', date('Y-m-d'))
+                    ->countAllResults();
 
-        $jmlTransaksi = $db->table('transaksi')->countAllResults();
         $totalProduk = $db->table('menu')->countAllResults();
 
         $stokMenipisCount = $db->table('menu')
@@ -57,7 +61,6 @@ class Admin extends BaseController
 
         return view('admin/dashboard', $data);
     }
-
     public function pengaturan()
 {
     $data = $this->_commonData('Pengaturan - Caffe Lego');
@@ -72,8 +75,8 @@ public function update_pengaturan()
         'nama_cafe'   => $this->request->getPost('nama_cafe'),
         'no_telp'     => $this->request->getPost('no_telp'),
         'alamat'      => $this->request->getPost('alamat'),
-        'pajak'       => $this->request->getPost('pajak'), // Data baru
-        'pesan_struk' => $this->request->getPost('pesan_struk'), // Data baru
+        'pajak'       => $this->request->getPost('pajak'), 
+        'pesan_struk' => $this->request->getPost('pesan_struk'), 
         'lebar_kertas' => $this->request->getPost('lebar_kertas'),
     ];
 
@@ -229,6 +232,26 @@ public function update_pengaturan()
 
     public function simpan()
     {
+        $rules = [
+            'nama_menu'   => 'required|is_unique[menu.nama_menu]',
+            'id_kategori' => 'required',
+            'harga'       => 'required|numeric|greater_than_equal_to[0]',
+        ];
+
+        $errors = [
+            'nama_menu' => [
+                'is_unique' => 'Gagal! Nama menu sudah terdaftar, gunakan nama lain.'
+            ],
+            'harga' => [
+                'greater_than_equal_to' => 'Gagal! Harga menu tidak boleh bernilai negatif.'
+            ]
+        ];
+
+        if (!$this->validate($rules, $errors)) {
+            $errorMsg = $this->validator->getError('nama_menu') ?: $this->validator->getError('harga');
+            return redirect()->back()->withInput()->with('error', $errorMsg);
+        }
+
         $fileFoto = $this->request->getFile('foto');
         $namaFoto = 'default.jpg';
         if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
@@ -252,6 +275,27 @@ public function update_pengaturan()
         $menuModel = new MenuModel();
         $id = $this->request->getPost('id_menu');
         $fotoLama = $this->request->getPost('foto_lama');
+
+        $rules = [
+            'nama_menu'   => "required|is_unique[menu.nama_menu,id_menu,{$id}]",
+            'id_kategori' => 'required',
+            'harga'       => 'required|numeric|greater_than_equal_to[0]',
+        ];
+
+        $errors = [
+            'nama_menu' => [
+                'is_unique' => 'Gagal! Nama menu tersebut sudah digunakan oleh menu lain.'
+            ],
+            'harga' => [
+                'greater_than_equal_to' => 'Gagal memperbarui! Harga tidak boleh bernilai negatif.'
+            ]
+        ];
+
+        if (!$this->validate($rules, $errors)) {
+
+            $errorMsg = $this->validator->getError('nama_menu') ?: $this->validator->getError('harga');
+            return redirect()->back()->with('error', $errorMsg);
+        }
 
         $dataUpdate = [
             'id_kategori' => $this->request->getPost('id_kategori'),
@@ -332,31 +376,57 @@ public function update_pengaturan()
 }
 
 public function laporan_keuangan()
-{
-    $db = \Config\Database::connect();
-    $filterTanggal = $this->request->getVar('tanggal');
-    $pengaturan = $db->table('pengaturan')->get()->getRowArray(); 
-    $builder = $db->table('transaksi');
-    $builder->select('DATE(tgl_transaksi) as tanggal, COUNT(id_transaksi) as jml_transaksi, SUM(total_bayar) as total_pendapatan');
-    
-    if ($filterTanggal) {
-        $builder->where('DATE(tgl_transaksi)', $filterTanggal);
-    }
+    {
+        $db = \Config\Database::connect();
+        
+        $query = $db->table('transaksi')
+                    ->select('transaksi.*, detail_transaksi.qty, menu.nama_menu, menu.harga')
+                    ->join('detail_transaksi', 'detail_transaksi.id_transaksi = transaksi.id_transaksi', 'left')
+                    ->join('menu', 'menu.id_menu = detail_transaksi.id_menu', 'left')
+                    ->orderBy('transaksi.tgl_transaksi', 'DESC')
+                    ->get()->getResultArray();
 
-    $builder->groupBy('DATE(tgl_transaksi)');
-    $builder->orderBy('tanggal', 'DESC');
-    $laporan = $builder->get()->getResultArray();
-    $hariIni = $db->table('transaksi')->selectSum('total_bayar')->where('DATE(tgl_transaksi)', date('Y-m-d'))->get()->getRow()->total_bayar ?? 0;
-    $bulanIni = $db->table('transaksi')->selectSum('total_bayar')->where('MONTH(tgl_transaksi)', date('m'))->where('YEAR(tgl_transaksi)', date('Y'))->get()->getRow()->total_bayar ?? 0;
+        $laporan = [];
+        foreach ($query as $row) {
+            $id = $row['id_transaksi'];
+            if (!isset($laporan[$id])) {
+                $laporan[$id] = [
+                    'tanggal'     => $row['tgl_transaksi'],
+                    'pelanggan'   => $row['nama_pelanggan'],
+                    'subtotal'    => 0,
+                    'total_bayar' => $row['total_bayar'], 
+                    'pajak'       => 0,
+                    'grand_total' => 0,
+                    'items'       => []
+                ];
+            }
+            if (!empty($row['nama_menu'])) {
+                $harga = $row['harga'] ?? 0;
+                $qty = $row['qty'] ?? 0;
+                $laporan[$id]['subtotal'] += ($harga * $qty);
+                $laporan[$id]['items'][] = [
+                    'nama'  => $row['nama_menu'],
+                    'harga' => $harga,
+                    'qty'   => $qty
+                ];
+            }
+        }
 
-    $data = [
-        'title' => 'Laporan Keuangan - Caffe Lego',
-        'pengaturan' => $pengaturan, 
+
+        foreach ($laporan as &$t) {
+            $t['grand_total'] = $t['total_bayar']; 
+            $t['pajak']       = $t['grand_total'] - $t['subtotal']; 
+            
+
+            if ($t['pajak'] < 0) {
+                $t['pajak'] = 0;
+            }
+        }
+
+        $data = array_merge($this->_commonData('Laporan Keuangan - Caffe Lego'), [
         'laporan' => $laporan,
-        'pendapatanHariIni' => $hariIni,
-        'pendapatanBulanIni' => $bulanIni,
-        'filterTanggal' => $filterTanggal
-    ];
+        'pendapatanHariIni' => $db->table('transaksi')->selectSum('total_bayar')->where('DATE(tgl_transaksi)', date('Y-m-d'))->get()->getRow()->total_bayar ?? 0
+    ]);
 
     return view('admin/laporan_keuangan', $data);
 }

@@ -25,8 +25,6 @@ class Kasir extends BaseController
         $jmlTransaksi = $db->table('transaksi')
         ->where('DATE(tgl_transaksi)', date('Y-m-d'))
         ->countAllResults();
-
-        // 2. Ambil 5 Transaksi Terakhir
         $transaksiTerakhir = $db->table('transaksi')
                                 ->orderBy('tgl_transaksi', 'DESC')
                                 ->limit(5)
@@ -77,55 +75,63 @@ class Kasir extends BaseController
     }
 
     public function save_transaksi()
-{
-    $db = \Config\Database::connect();
-    
-    $metode = $this->request->getPost('metode_pembayaran'); 
-    $uang_bayar = $this->request->getPost('uang_bayar');
-    $cartData = $this->request->getPost('cart_data');
-    $cart = json_decode($cartData, true);
+    {
+        $db = \Config\Database::connect();
+        
+        $metode = $this->request->getPost('metode_pembayaran'); 
+        $uang_bayar = $this->request->getPost('uang_bayar');
+        $cartData = $this->request->getPost('cart_data');
+        $cart = json_decode($cartData, true);
 
-    if (empty($cart)) {
-        return $this->response->setJSON(['status' => 'error', 'message' => 'Keranjang kosong!']);
-    }
+        if (empty($cart)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Keranjang kosong!']);
+        }
 
-    $db->transStart();
+        $pengaturanModel = new \App\Models\PengaturanModel();
+        $pengaturan = $pengaturanModel->first();
+        $persenPajak = $pengaturan['pajak'] ?? 0;
 
-    $totalBayar = 0;
-    foreach ($cart as $item) {
-        $totalBayar += ($item['price'] * $item['qty']);
-    }
+        $db->transStart();
 
-    $db->table('transaksi')->insert([
-        'id_user'        => session()->get('id_user') ?? 1, 
-        'tgl_transaksi'  => date('Y-m-d H:i:s'),
-        'total_bayar'    => $totalBayar,
-        'nama_pelanggan' => $this->request->getPost('nama_pelanggan'),
-        'uang_bayar'     => $uang_bayar,
-        'status_bayar'   => 'Lunas',
-        'metode_bayar'   => $metode, // Pastikan kolom DB namanya 'metode_bayar'
-        'deskripsi'      => $this->request->getPost('deskripsi'),
-    ]);
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $subtotal += ($item['price'] * $item['qty']);
+        }
 
-    $id_transaksi = $db->insertID();
+        $nominalPajak = ($subtotal * $persenPajak) / 100;
+        $totalBayar = $subtotal + $nominalPajak;
 
-    foreach ($cart as $item) {
-        $db->table('detail_transaksi')->insert([
-            'id_transaksi' => $id_transaksi,
-            'id_menu'      => $item['id'],
-            'qty'          => $item['qty'],
-            'harga_satuan' => $item['price'],
-            'subtotal'     => $item['price'] * $item['qty']
+        $db->table('transaksi')->insert([
+            'id_user'        => session()->get('id_user') ?? 1, 
+            'tgl_transaksi'  => date('Y-m-d H:i:s'),
+            'total_bayar'    => $totalBayar,   
+            'pajak'          => $nominalPajak, 
+            'nama_pelanggan' => $this->request->getPost('nama_pelanggan'),
+            'uang_bayar'     => $uang_bayar,
+            'status_bayar'   => 'Lunas',
+            'metode_bayar'   => $metode, 
+            'deskripsi'      => $this->request->getPost('deskripsi'),
+        ]);
+
+        $id_transaksi = $db->insertID();
+
+        foreach ($cart as $item) {
+            $db->table('detail_transaksi')->insert([
+                'id_transaksi' => $id_transaksi,
+                'id_menu'      => $item['id'],
+                'qty'          => $item['qty'],
+                'harga_satuan' => $item['price'],
+                'subtotal'     => $item['price'] * $item['qty']
+            ]);
+        }
+
+        $db->transComplete();
+
+        return $this->response->setJSON([
+            'status'       => 'success',
+            'id_transaksi' => $id_transaksi
         ]);
     }
-
-    $db->transComplete();
-
-    return $this->response->setJSON([
-        'status'       => 'success',
-        'id_transaksi' => $id_transaksi
-    ]);
-}
     public function cetak_struk($id)
     {
         $db = \Config\Database::connect();
@@ -191,31 +197,49 @@ public function histori_transaksi()
 public function pesanan()
 {
     $db = \Config\Database::connect();
-    $builder = $db->table('transaksi');
-    
-    $builder->select('transaksi.*, detail_transaksi.qty, detail_transaksi.status as status_item, menu.nama_menu');
-    $builder->join('detail_transaksi', 'detail_transaksi.id_transaksi = transaksi.id_transaksi');
-    $builder->join('menu', 'menu.id_menu = detail_transaksi.id_menu');
-    $builder->orderBy('transaksi.tgl_transaksi', 'DESC');
-    
-    $results = $builder->get()->getResultArray();
-
+    $transaksi = $db->table('transaksi')
+        ->orderBy('tgl_transaksi', 'DESC')
+        ->get()
+        ->getResultArray();
     $orders = [];
-    foreach ($results as $row) {
-        $st = strtolower($row['status_item'] ?? 'menunggu');
-        
-        if ($st == 'proses' || $st == 'dimasak') {
-            $row['status'] = 'sedang dibuat';
-        } else {
-            $row['status'] = $st;
+    foreach ($transaksi as $row) {
+        $detail = $db->table('detail_transaksi')
+            ->select('detail_transaksi.qty, detail_transaksi.status, menu.nama_menu')
+            ->join(
+                'menu',
+                'menu.id_menu = detail_transaksi.id_menu'
+            )
+            ->where(
+                'detail_transaksi.id_transaksi',
+                $row['id_transaksi']
+            )
+            ->get()
+            ->getResultArray();
+        $status = 'menunggu';
+
+        if (!empty($detail)) {
+
+            $statusItem = strtolower($detail[0]['status'] ?? 'menunggu');
+
+            if ($statusItem == 'proses' || $statusItem == 'dimasak') {
+                $status = 'sedang dibuat';
+            } else {
+                $status = $statusItem;
+            }
         }
-        
+        $row['status'] = $status;
+        $row['detail'] = $detail;
         $orders[] = $row;
     }
 
-    $data = array_merge($this->_commonData('Status Pesanan - Caffe Lego'), [
-        'orders' => $orders
-    ]);
+
+    $data = array_merge(
+        $this->_commonData('Status Pesanan - Caffe Lego'),
+        [
+            'orders' => $orders
+        ]
+    );
+
 
     return view('kasir/pesanan', $data);
 }

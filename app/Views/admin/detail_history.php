@@ -35,10 +35,14 @@
 <?= view('sidebar') ?>
 <div class="main-content">
     <div class="d-flex justify-content-between align-items-center mb-5 bg-white p-3 rounded-4 shadow-sm">
-    <div class="d-flex align-items-center">
-        <div>
-            <h1 class="fw-bold h3 mb-0" style="color: #0f0c29;">Rincian Transaksi</h1>
-            <p class="text-muted small mb-0">Detail data pesanan #TRX-<?= $transaksi['id_transaksi'] ?></p>
+        <div class="d-flex align-items-center">
+            <button class="btn d-lg-none p-0 text-dark me-3" id="menu-toggle">
+                <i class="bi bi-list fs-1"></i>
+            </button>
+            <div>
+                <h1 class="fw-bold h3 mb-0" style="color: #0f0c29;">Rincian Transaksi</h1>
+                <p class="text-muted small mb-0">Detail data pesanan #TRX-<?= $transaksi['id_transaksi'] ?></p>
+            </div>
         </div>
         <i class="bi bi-arrow-clockwise fs-4" style="cursor:pointer" onclick="location.reload()"></i>
     </div>
@@ -85,26 +89,67 @@
             </table>
         </div>
 
-        <div class="row mt-5 justify-content-end">
+        <div class="row mt-5 justify-content-between align-items-end">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <button onclick="history.back()" class="btn border-0 px-4 py-2" style="background-color: #f1f5f9; color: #475569; border-radius: 12px; font-weight: 600; transition: 0.3s;">
+                    <i class="bi bi-arrow-left me-2"></i> Kembali
+                </button>
+            </div>
+
             <div class="col-md-5">
                 <div class="summary-box">
+                    <?php 
+                        // 1. Hitung subtotal pendapatan murni dari menu
+                        $subtotalMurni = 0;
+                        foreach ($detail as $item) {
+                            $harga = $item['harga_satuan'] ?? $item['harga'] ?? 0;
+                            $subtotalItem = $item['subtotal'] ?? ($harga * $item['qty']);
+                            $subtotalMurni += $subtotalItem;
+                        }
+                        
+                        // 2. Ambil persentase pajak dari pengaturan
+                        $persenPajak = $pengaturan['pajak'] ?? 0;
+                        
+                        // 3. Hitung nominal pajak yang sebenarnya
+                        $nominalPajak = ($subtotalMurni * $persenPajak) / 100;
+                        
+                        // 4. Hitung Grand Total (Subtotal + Pajak)
+                        $grandTotal = $subtotalMurni + $nominalPajak;
+                    ?>
+
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small">Total Belanja</span>
-                        <span class="fw-bold">Rp <?= number_format($transaksi['total_bayar'], 0, ',', '.') ?></span>
+                        <span class="text-muted small">Subtotal (Pendapatan Asli)</span>
+                        <span class="fw-bold" style="color: #0f0c29;">Rp <?= number_format($subtotalMurni, 0, ',', '.') ?></span>
                     </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Pajak PPN (<?= $persenPajak ?>%)</span>
+                        <span class="fw-bold text-danger">Rp <?= number_format($nominalPajak, 0, ',', '.') ?></span>
+                    </div>
+
                     <div class="d-flex justify-content-between mb-3">
-                        <span class="text-muted small">Uang Bayar</span>
-                        <span class="text-dark">Rp <?= number_format($transaksi['uang_bayar'] ?? 0, 0, ',', '.') ?></span>
+                        <span class="text-muted small">Grand Total</span>
+                        <span class="fw-bold text-primary">Rp <?= number_format($grandTotal, 0, ',', '.') ?></span>
                     </div>
+                    
+                    <hr style="border-top: 1px solid #dee2e6;">
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Uang Bayar</span>
+                        <span class="text-dark fw-bold">Rp <?= number_format($transaksi['uang_bayar'] ?? 0, 0, ',', '.') ?></span>
+                    </div>
+                    
                     <hr style="border-top: 2px dashed #dee2e6;">
-                    <div class="d-flex justify-content-between align-items-center">
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
                         <span class="fw-bold" style="color: #0f0c29;">Kembalian</span>
                         <span class="fw-bold fs-4" style="color: #2DCE89;">
-                            Rp <?= number_format(($transaksi['uang_bayar'] ?? 0) - $transaksi['total_bayar'], 0, ',', '.') ?>
+                            Rp <?= number_format(($transaksi['uang_bayar'] ?? 0) - $grandTotal, 0, ',', '.') ?>
                         </span>
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 </div>

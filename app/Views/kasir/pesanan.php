@@ -41,7 +41,6 @@
             background: #5f4bd8;
             color: white;
         }
-        /* 📱 Tombol Cetak Struk Android */
         .btn-android {
             background: #E6F9F1;
             color: #00C853;
@@ -106,7 +105,10 @@
                                 <span class="badge-status <?= $badgeClass ?>"><?= $row['status'] ?? 'MENUNGGU' ?></span>
                             </div>
                             <div class="cust-info"><?= $row['nama_pelanggan'] ?> | <?= $row['metode_bayar'] ?? 'Tunai' ?></div>
-                            <div class="menu-name"><?= $row['qty'] ?>x <?= $row['nama_menu'] ?></div>
+                            <div class="menu-name"><?php foreach($row['detail'] as $item): ?>
+                                <div><?= $item['qty'] ?>x <?= $item['nama_menu'] ?></div>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                         <div class="col-5 d-flex flex-column align-items-end justify-content-between" style="min-height: 75px;">
                             <div class="time-text mb-1"><?= date('d M Y, H:i', strtotime($row['tgl_transaksi'])) ?></div>
@@ -148,8 +150,6 @@
 
             cards.forEach(card => {
                 let cardStatus = card.getAttribute('data-status').toLowerCase();
-
-                // Sinkronisasi value 'sedang dibuat' dari dropdown dengan status di database/kartu
                 const matchesStatus = (statusTerm === 'semua' || cardStatus === statusTerm);
 
                 if (matchesStatus) {
@@ -160,7 +160,6 @@
             });
         }
 
-        // Pasang event listener ke dropdown saja
         if (statusFilter) {
             statusFilter.addEventListener('change', filterOrders);
         }

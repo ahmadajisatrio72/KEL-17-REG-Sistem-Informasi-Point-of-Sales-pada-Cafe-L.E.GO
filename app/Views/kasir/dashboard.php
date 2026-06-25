@@ -14,10 +14,7 @@
         }
         body { background-color: var(--bg-body); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         
-        /* Main content sekarang penuh (full width) tanpa terhalang space sidebar */
         .main-content { padding: 25px 40px; transition: 0.3s; }
-
-        /* DASHBOARD CARD STYLE */
         .card-stat { border: none; border-radius: 25px; padding: 30px; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05); height: 160px; position: relative; display: flex; flex-direction: column; justify-content: center; }
         .label-gray { color: #8A92A6; font-size: 0.75rem; font-weight: 500; }
         .val-dark { font-size: 1.6rem; font-weight: 700; color: #0f0c29; margin-top: 5px; }
@@ -68,13 +65,17 @@
 
     <div class="row g-4 mb-2">
         <div class="col-6">
-            <div class="card-stat">
-                <div class="date-small">Hari ini</div>
-                <div class="label-gray">Jumlah transaksi</div>
-                <div class="val-dark"><?= $jmlTransaksi ?></div>
-                <i class="bi bi-cart3 card-icon"></i>
-            </div>
+    <div class="card-stat">
+        <div class="date-small">Hari ini</div>
+        <div class="label-gray">Jumlah Transaksi</div>
+        
+        <div class="val-dark mt-2">
+            <?= number_format($jmlTransaksi ?? 0, 0, ',', '.') ?>
         </div>
+        
+        <i class="bi bi-cart-check-fill card-icon text-success opacity-50"></i>
+    </div>
+</div>
         <div class="col-6">
             <div class="card-stat">
                 <div class="date-small">Hari ini</div>

@@ -21,7 +21,7 @@
         body { background-color: var(--bg-body); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .main-content { padding: 25px 40px; transition: 0.3s; }
         .table-card { background: white; border-radius: 25px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .img-menu { width: 48px; height: 48px; object-fit: cover; border-radius: 12px; }
+        .img-menu { width: 48px; height: 48px; object-fit: cover; border-radius: 12px; }`~
         .btn-status { border: none; border-radius: 10px; padding: 8px 18px; font-size: 0.75rem; font-weight: 700; cursor: pointer; min-width: 120px; transition: 0.3s; }
         .status-tersedia { background: #E6FFFA; color: #38B2AC; border: 1px solid #38B2AC; }
         .status-habis { background: #FFF5F5; color: #E53E3E; border: 1px solid #E53E3E; }

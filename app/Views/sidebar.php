@@ -4,17 +4,13 @@
         --bg-body: #F4F7FE;
     }
     body { background-color: var(--bg-body); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-    
-    /* SIDEBAR STYLE (Konsisten dengan halaman lain) */
-    /* SIDEBAR STYLE */
-/* SIDEBAR STYLE (Versi Tahan Banting di HP) */
 .sidebar { 
     background: var(--sidebar-gradient); 
-    height: 100dvh; /* Kuncinya di sini, ganti 100vh jadi 100dvh! */
+    height: 100dvh; 
     width: 260px; 
     position: fixed; 
     color: white; 
-    padding: 25px 25px 40px 25px; /* Gua tambahin padding bawah 40px biar aman dari tombol navigasi HP */
+    padding: 25px 25px 40px 25px; 
     box-shadow: 4px 0 15px rgba(0,0,0,0.3); 
     transition: 0.3s; 
     z-index: 1050; 
@@ -51,8 +47,6 @@
     .sidebar.active { left: 0; } 
     .main-content { margin-left: 0; padding: 20px; } 
     #menu-toggle-sidebar { display: block; }
-    
-    /* 🔴 SELIPIN BARIS INI BIAR TOMBOLNYA DIPAKSA MUNCUL DI HP */
     #menu-toggle { display: block !important; } 
 }
 </style>
@@ -158,7 +152,6 @@
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <script>
-    // 1. UPDATE WAKTU REALTIME (Bawaan lu)
     function updateTime() {
         const now = new Date();
         const options = { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
@@ -166,27 +159,19 @@
         if(clockEl) clockEl.innerText = now.toLocaleDateString('id-ID', options).replace(/\./g, ':');
     }
     setInterval(updateTime, 1000); updateTime();
-
-    // 2. TOGGLE SIDEBAR DENGAN EVENT DELEGATION GLOBAL (Anti-Freeze & Anti-Eror)
     document.addEventListener('click', function(event) {
         const sidebarEl = document.getElementById('sidebar');
         const overlayEl = document.getElementById('sidebar-overlay');
         
         if (!sidebarEl || !overlayEl) return;
-
-        // A. Jika mengklik tombol garis 3 (id="menu-toggle") di halaman mana pun
         if (event.target.closest('#menu-toggle')) {
             sidebarEl.classList.add('active');
             overlayEl.classList.add('show');
         }
-
-        // B. Jika mengklik tombol panah/list di DALAM sidebar (id="menu-toggle-sidebar")
         if (event.target.closest('#menu-toggle-sidebar')) {
             sidebarEl.classList.remove('active');
             overlayEl.classList.remove('show');
         }
-
-        // C. Jika mengklik area transparan gelap (overlay) di luar sidebar
         if (event.target === overlayEl) {
             sidebarEl.classList.remove('active');
             overlayEl.classList.remove('show');

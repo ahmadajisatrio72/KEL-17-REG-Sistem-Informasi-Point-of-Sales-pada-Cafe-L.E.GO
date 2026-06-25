@@ -24,30 +24,57 @@ class Kitchen extends BaseController
             'pengaturan' => $this->pengaturanModel->first()
         ];
     }
-    public function index()
-    {
-        $db = \Config\Database::connect();
-        $total_aktif = $db->table('detail_transaksi')
-                        ->whereIn('status', ['Menunggu', 'Sedang Dibuat'])
-                        ->countAllResults();
+public function index()
+{
+    $db = \Config\Database::connect();
+    $total_aktif = $db->table('transaksi')
+        ->select('transaksi.id_transaksi')
+        ->join(
+            'detail_transaksi',
+            'detail_transaksi.id_transaksi = transaksi.id_transaksi'
+        )
+        ->whereIn(
+            'detail_transaksi.status',
+            ['Menunggu', 'Sedang Dibuat']
+        )
+        ->groupBy('transaksi.id_transaksi')
+        ->countAllResults();
+    $total_proses = $db->table('transaksi')
+        ->select('transaksi.id_transaksi')
+        ->join(
+            'detail_transaksi',
+            'detail_transaksi.id_transaksi = transaksi.id_transaksi'
+        )
+        ->where(
+            'detail_transaksi.status',
+            'Sedang Dibuat'
+        )
+        ->groupBy('transaksi.id_transaksi')
+        ->countAllResults();
 
-        $total_proses = $db->table('detail_transaksi')
-                        ->where('status', 'Sedang Dibuat')
-                        ->countAllResults();
-
-        $total_menunggu = $db->table('detail_transaksi')
-                            ->where('status', 'Menunggu')
-                            ->countAllResults();
-
-        $data = array_merge($this->_commonData('Dashboard Kitchen'), [
-            'total_aktif'    => $total_aktif,
-            'total_proses'   => $total_proses,
+    $total_menunggu = $db->table('transaksi')
+        ->select('transaksi.id_transaksi')
+        ->join(
+            'detail_transaksi',
+            'detail_transaksi.id_transaksi = transaksi.id_transaksi'
+        )
+        ->where(
+            'detail_transaksi.status',
+            'Menunggu'
+        )
+        ->groupBy('transaksi.id_transaksi')
+        ->countAllResults();
+    $data = array_merge(
+        $this->_commonData('Dashboard Kitchen'),
+        [
+            'total_aktif' => $total_aktif,
+            'total_proses' => $total_proses,
             'total_menunggu' => $total_menunggu,
-            'transaksiTerakhir' => [] 
-        ]);
-
-        return view('kitchen/dashboard', $data);
-    }
+            'transaksiTerakhir' => []
+        ]
+    );
+    return view('kitchen/dashboard', $data);
+}
 
     public function pesanan_status()
     {

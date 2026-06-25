@@ -12,12 +12,8 @@
     <style>
         body { height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg,#0f0c29,#302b63,#5f4bd8); margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .reg-card { width: 400px; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        
-        /* STYLE LOGO KOTAK DINAMIS SINKRON DENGAN LOGIN & SIDEBAR */
         .logo-box { width: 65px; height: 65px; background: #6c4cff; border-radius: 12px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .logo-box img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* SEDIKIT PERBAIKAN: Supaya input password nyatu sama tombol mata */
         .input-group .form-control { border-right: none; }
         .input-group .btn { border: 1px solid #ced4da; border-left: none; background: #f8f9fa; }
         .input-group .btn:hover { background: #e9ecef; }

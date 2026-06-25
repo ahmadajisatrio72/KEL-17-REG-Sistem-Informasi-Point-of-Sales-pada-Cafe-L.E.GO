@@ -73,16 +73,25 @@
                                 <td class="text-muted">@<?= $u['username'] ?></td>
                                 <td><span class="badge bg-light text-primary border rounded-pill px-3 py-2"><?= $u['role'] ?></span></td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-light border rounded-circle me-1" 
-                                            onclick="isiModalEdit('<?= $u['id_user'] ?>', '<?= $u['nama_lengkap'] ?>', '<?= $u['username'] ?>', '<?= $u['role'] ?>')"
-                                            data-bs-toggle="modal" data-bs-target="#modalEditUser" style="width: 32px; height: 32px; padding: 0;">
-                                        <i class="bi bi-pencil text-primary"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-light border rounded-circle" 
-                                            onclick="konfirmasiHapus('<?= base_url('admin/kelola_akun/hapus/' . $u['id_user']) ?>')" style="width: 32px; height: 32px; padding: 0;">
-                                        <i class="bi bi-trash text-danger"></i>
-                                    </button>
-                                </td>
+    <button class="btn btn-sm btn-light border rounded-circle me-1" 
+            onclick="isiModalEdit('<?= $u['id_user'] ?>', '<?= $u['nama_lengkap'] ?>', '<?= $u['username'] ?>', '<?= $u['role'] ?>')"
+            data-bs-toggle="modal" data-bs-target="#modalEditUser" style="width: 32px; height: 32px; padding: 0;">
+        <i class="bi bi-pencil text-primary"></i>
+    </button>
+    
+    <?php if ($u['id_user'] == session()->get('id_user')) : ?>
+        <button class="btn btn-sm btn-light border rounded-circle opacity-50" 
+                style="width: 32px; height: 32px; padding: 0; cursor: not-allowed;" 
+                title="Anda tidak bisa menghapus akun yang sedang digunakan">
+            <i class="bi bi-shield-lock text-secondary"></i>
+        </button>
+    <?php else : ?>
+        <button class="btn btn-sm btn-light border rounded-circle" 
+                onclick="konfirmasiHapus('<?= base_url('admin/kelola_akun/hapus/' . $u['id_user']) ?>')" style="width: 32px; height: 32px; padding: 0;">
+            <i class="bi bi-trash text-danger"></i>
+        </button>
+    <?php endif; ?>
+</td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

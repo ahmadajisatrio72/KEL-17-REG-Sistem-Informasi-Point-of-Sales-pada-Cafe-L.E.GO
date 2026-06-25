@@ -69,32 +69,56 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table align-middle" id="tabelLaporan">
-                <thead class="text-muted" style="font-size: 12px;">
-                    <tr>
-                        <th>TANGGAL</th>
-                        <th class="text-center">JUMLAH TRX</th>
-                        <th class="text-end pe-4">PENDAPATAN</th>
+    <table class="table align-middle" id="tabelLaporan">
+        <thead class="text-muted" style="font-size: 12px;">
+            <tr>
+                <th>TANGGAL / PELANGGAN</th>
+                <th>DETAIL MENU</th>
+                <th class="text-end">SUBTOTAL</th>
+                <th class="text-end">PAJAK</th>
+                <th class="text-end pe-4">TOTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($laporan)) : ?>
+                <tr class="empty-row"><td colspan="5" class="text-center py-5 text-muted">Belum ada data laporan.</td></tr>
+            <?php else : ?>
+                <?php foreach ($laporan as $row) : ?>
+                    <tr class="data-row" 
+                        data-bulan="<?= date('Y-m', strtotime($row['tanggal'])) ?>" 
+                        data-subtotal="<?= $row['subtotal'] ?>"
+                        data-pajak="<?= $row['pajak'] ?>"
+                        data-revenue="<?= $row['grand_total'] ?>">
+                        
+                        <td>
+                            <div class="fw-bold text-dark"><?= date('d M Y', strtotime($row['tanggal'])) ?></div>
+                            <small class="text-primary"><i class="bi bi-person-circle"></i> <?= $row['pelanggan'] ?></small>
+                        </td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small">
+                                <?php foreach ($row['items'] as $item) : ?>
+                                    <li><?= $item['nama'] ?> (Rp <?= number_format($item['harga'], 0, ',', '.') ?> x <?= $item['qty'] ?>)</li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </td>
+                        <td class="text-end text-muted">Rp <?= number_format($row['subtotal'], 0, ',', '.') ?></td>
+                        <td class="text-end text-muted">Rp <?= number_format($row['pajak'], 0, ',', '.') ?></td>
+                        <td class="text-end pe-4 fw-bold text-success">Rp <?= number_format($row['grand_total'], 0, ',', '.') ?></td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($laporan)) : ?>
-                        <tr class="empty-row"><td colspan="3" class="text-center py-5 text-muted">Belum ada data laporan.</td></tr>
-                    <?php else : ?>
-                        <?php foreach ($laporan as $row) : ?>
-                            <tr class="data-row" 
-                                data-bulan="<?= date('Y-m', strtotime($row['tanggal'])) ?>" 
-                                data-revenue="<?= $row['total_pendapatan'] ?>">
-                                <td class="text-muted"><?= date('d M Y', strtotime($row['tanggal'])) ?></td>
-                                <td class="text-center fw-bold"><?= $row['jml_transaksi'] ?></td>
-                                <td class="text-end pe-4 fw-bold text-success">Rp <?= number_format($row['total_pendapatan'], 0, ',', '.') ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        <tr id="noDataRow" style="display: none;"><td colspan="3" class="text-center py-5 text-muted">Tidak ada data laporan pada bulan ini.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+                <?php endforeach; ?>
+                <tr id="noDataRow" style="display: none;"><td colspan="5" class="text-center py-5 text-muted">Tidak ada data laporan pada bulan ini.</td></tr>
+            <?php endif; ?>
+        </tbody>
+        <tfoot id="tableFooter" style="display: none; background-color: #f8f9fa;">
+            <tr class="fw-bold">
+                <td colspan="2" class="text-end pe-3">TOTAL KESELURUHAN:</td>
+                <td class="text-end text-primary" id="sumSubtotal">Rp 0</td>
+                <td class="text-end text-danger" id="sumPajak">Rp 0</td>
+                <td class="text-end pe-4 text-success" id="sumTotal">Rp 0</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
     </div>
 </div>
 
@@ -108,16 +132,23 @@
     function jalankanFilterBulanan() {
         const bulanDipilih = filterInput.value; 
         const rows = document.querySelectorAll('.data-row');
-        let totalPendapatan = 0;
+        
+        let totalSub = 0;
+        let totalPjk = 0;
+        let totalRev = 0;
         let adaData = false;
 
         rows.forEach(row => {
             const bulanRow = row.getAttribute('data-bulan');
-            const revenueRow = parseInt(row.getAttribute('data-revenue')) || 0;
+            const sub = parseInt(row.getAttribute('data-subtotal')) || 0;
+            const pjk = parseInt(row.getAttribute('data-pajak')) || 0;
+            const rev = parseInt(row.getAttribute('data-revenue')) || 0;
 
             if (bulanRow === bulanDipilih) {
                 row.style.display = ""; 
-                totalPendapatan += revenueRow; 
+                totalSub += sub; 
+                totalPjk += pjk; 
+                totalRev += rev; 
                 adaData = true;
             } else {
                 row.style.display = "none"; 
@@ -125,11 +156,14 @@
         });
 
         const noDataRow = document.getElementById('noDataRow');
-        if (noDataRow) {
-            noDataRow.style.display = adaData ? "none" : "";
-        }
+        if (noDataRow) noDataRow.style.display = adaData ? "none" : "";
 
-        totalBox.innerText = "Rp " + totalPendapatan.toLocaleString('id-ID');
+        document.getElementById('sumSubtotal').innerText = "Rp " + totalSub.toLocaleString('id-ID');
+        document.getElementById('sumPajak').innerText = "Rp " + totalPjk.toLocaleString('id-ID');
+        document.getElementById('sumTotal').innerText = "Rp " + totalRev.toLocaleString('id-ID');
+        document.getElementById('tableFooter').style.display = adaData ? "" : "none";
+
+        if(totalBox) totalBox.innerText = "Rp " + totalRev.toLocaleString('id-ID');
     }
 
     if (filterInput) {
@@ -139,8 +173,14 @@
 
     function exportExcel() {
         const bulanDipilih = filterInput.value;
-        const totalText = totalBox.innerText;
+        
+        // 🔴 AMBIL KETIGA TOTAL DARI WEB
+        const sumSub = document.getElementById('sumSubtotal').innerText;
+        const sumPjk = document.getElementById('sumPajak').innerText;
+        const sumTot = document.getElementById('sumTotal').innerText;
+        
         let barisHtmlClean = "";
+        
         document.querySelectorAll('.data-row').forEach(row => {
             if (row.style.display !== "none") {
                 barisHtmlClean += row.outerHTML;
@@ -148,14 +188,16 @@
         });
 
         if (barisHtmlClean === "") {
-            barisHtmlClean = `<tr><td colspan="3" style="text-align:center; padding:20px; color:#999;">Tidak ada data laporan pada bulan ini.</td></tr>`;
+            barisHtmlClean = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#999;">Tidak ada data laporan pada bulan ini.</td></tr>`;
         }
 
         const footerExtra = `
             <tfoot>
                 <tr style="font-weight:bold; background-color: #f8f9fa;">
-                    <td colspan="2" style="border: 1px solid #cccccc; text-align: center; padding: 8px;">TOTAL KESELURUHAN BULAN INI</td>
-                    <td style="border: 1px solid #cccccc; text-align: right; color: #198754; padding: 8px; padding-right: 20px;">${totalText}</td>
+                    <td colspan="2" style="border: 1px solid #cccccc; text-align: right; padding: 8px;">TOTAL KESELURUHAN BULAN INI</td>
+                    <td style="border: 1px solid #cccccc; text-align: right; color: #0d6efd; padding: 8px;">${sumSub}</td>
+                    <td style="border: 1px solid #cccccc; text-align: right; color: #dc3545; padding: 8px;">${sumPjk}</td>
+                    <td style="border: 1px solid #cccccc; text-align: right; color: #198754; padding: 8px;">${sumTot}</td>
                 </tr>
             </tfoot>`;
 
@@ -163,7 +205,7 @@
             <style>
                 table { border-collapse: collapse; font-family: 'Segoe UI', sans-serif; }
                 th { background-color: #5f4bd8; color: #ffffff; border: 1px solid #cccccc; padding: 8px; text-align: center; font-weight: bold; }
-                td { border: 1px solid #cccccc; padding: 6px; text-align: left; }
+                td { border: 1px solid #cccccc; padding: 6px; text-align: left; vertical-align: top; }
                 .text-end { text-align: right; }
                 .text-center { text-align: center; }
             </style>`;
@@ -180,9 +222,11 @@
                 <table>
                     <thead>
                         <tr style="background-color: #5f4bd8; color: #ffffff;">
-                            <th>TANGGAL</th>
-                            <th>JUMLAH TRX</th>
-                            <th>PENDAPATAN</th>
+                            <th>TANGGAL / PELANGGAN</th>
+                            <th>DETAIL MENU (HARGA x QTY)</th>
+                            <th>SUBTOTAL</th>
+                            <th>PAJAK</th>
+                            <th>TOTAL</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -198,7 +242,7 @@
         const downloadLink = document.createElement('a');
         
         downloadLink.href = url;
-        downloadLink.download = `Laporan_Bulan_${bulanDipilih}.xls`;
+        downloadLink.download = `Laporan_Keuangan_${bulanDipilih}.xls`;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
