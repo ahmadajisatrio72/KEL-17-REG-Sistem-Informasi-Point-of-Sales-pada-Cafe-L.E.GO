@@ -85,6 +85,7 @@ if (service('toolbar')) {
     <div class="text-center">
         <strong class="fw-bold" style="font-size: 11pt; letter-spacing: 0.5px;"><?= strtoupper($pengaturan['nama_cafe'] ?? 'CAFFE LEGO') ?></strong><br>
         <span style="font-size: 7.5pt;"><?= $pengaturan['alamat'] ?? 'Subang, Jawa Barat' ?></span><br>
+        <span style="font-size: 7.5pt;">Telp: <?= $pengaturan['no_telp'] ?? '-' ?></span><br>
         <small style="font-size: 7.5pt;"><?= date('d/m/Y H:i', strtotime($transaksi['tgl_transaksi'])) ?></small>
     </div>
     

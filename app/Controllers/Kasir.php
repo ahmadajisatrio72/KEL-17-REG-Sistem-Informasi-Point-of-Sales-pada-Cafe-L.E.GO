@@ -341,6 +341,7 @@ public function get_transaksi_json($id)
 
                 'nama_cafe'         => $pengaturan['nama_cafe'] ?? 'CAFFE LEGO',
                 'alamat'            => $pengaturan['alamat'] ?? 'Subang, Jawa Barat',
+                'no_telp'           => $pengaturan['no_telp'] ?? '-',
                 'pesan_struk'       => $pengaturan['pesan_struk'] ?? 'Terima Kasih!',
 
                 'items'             => []

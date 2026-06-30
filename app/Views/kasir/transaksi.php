@@ -249,7 +249,6 @@
         cekValidasi();
     }
     
-   // 🔴 TAMBAHKAN VARIABEL INI DI ATAS FUNGSI
     let metodeSebelumnya = 'Cash'; 
 
     function cekValidasi() {
@@ -265,13 +264,11 @@
             return;
         }
 
-        // 🔴 BUG FIX: Kosongkan kotak uang kalau kasir ganti pikiran dari QRIS balik ke Cash
         if (metode === 'Cash' && metodeSebelumnya === 'QRIS') {
             inputUang.value = ''; 
             textKembalian.innerText = 'Rp 0';
         }
-        
-        // Update ingatan sistem ke metode yang baru dipilih
+
         metodeSebelumnya = metode; 
 
         if (metode === 'Cash') {
@@ -333,6 +330,7 @@ let urlJson = '<?= site_url("kasir/get_transaksi_json") ?>/' + data.id_transaksi
 
                                 const namaCafe   = transaksi.nama_cafe || 'CAFFE LEGO';
                                 const alamatCafe = transaksi.alamat || 'Subang, Jawa Barat';
+                                const noTelp     = transaksi.no_telp || '';
                                 const pesanStruk = transaksi.pesan_struk || 'Terima Kasih!';
                                 const kasir      = transaksi.username || 'Kasir';
                                 const metodeStr  = (transaksi.metode_pembayaran || 'CASH').toUpperCase();
@@ -402,19 +400,18 @@ let urlJson = '<?= site_url("kasir/get_transaksi_json") ?>/' + data.id_transaksi
                                     if (sisaSpasi < 1) sisaSpasi = 1;
                                     return kiri + " ".repeat(sisaSpasi) + kanan;
                                 };
-
-                                let strukText = "";
-                                strukText += buatTengah(namaCafe.toUpperCase()) + "\n"; 
-                                strukText += buatTengah(alamatCafe) + "\n";           
-                                strukText += buatTengah(waktuTransaksi) + "\n";       
-                                strukText += "--------------------------------\n";
-                                strukText += buatRataKiriKanan(`No    : #${transaksi.id}`, "") + "\n";
-                                strukText += buatRataKiriKanan(`Plgn  : ${transaksi.pelanggan}`, "") + "\n";
-                                strukText += buatRataKiriKanan(`Kasir : ${kasir}`, "") + "\n";
-                                strukText += "--------------------------------\n";
+                                let headerStruk = `${buatTengah(namaCafe.toUpperCase())}\n${buatTengah(alamatCafe)}\n`;
+                                if (noTelp && noTelp.trim() !== '') {
+                                    headerStruk += `${buatTengah("Telp: " + noTelp)}\n`;
+                                } 
+                                headerStruk += `${buatTengah(waktuTransaksi)}\n--------------------------------\n`;
+                                let strukText = headerStruk + 
+                                buatRataKiriKanan(`No    : #${transaksi.id_transaksi || transaksi.id || idTransaksi}`, "") + "\n" +
+                                buatRataKiriKanan(`Plgn  : ${transaksi.nama_pelanggan || transaksi.pelanggan}`, "") + "\n" +
+                                buatRataKiriKanan(`Kasir : ${kasir}`, "") + "\n" +"--------------------------------\n";
 
                                 transaksi.items.forEach(item => {
-                                    strukText += item.nama.toUpperCase() + "\n"; // 👈 Nama menu aman di sebelah kiri
+                                    strukText += item.nama.toUpperCase() + "\n"; 
                                     let qtyHarga = `${item.qty} x ${parseInt(item.harga).toLocaleString('id-ID')}`;
                                     let totalItem = parseInt(item.total).toLocaleString('id-ID');
                                     strukText += buatRataKiriKanan(qtyHarga, totalItem) + "\n";

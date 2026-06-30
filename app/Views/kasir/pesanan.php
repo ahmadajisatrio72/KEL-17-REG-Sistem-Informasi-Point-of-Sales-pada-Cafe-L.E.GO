@@ -190,6 +190,7 @@
 
                 const namaCafe   = transaksi.nama_cafe || 'CAFFE LEGO';
                 const alamatCafe = transaksi.alamat || 'Subang, Jawa Barat';
+                const noTelp     = transaksi.no_telp || '';
                 const pesanStruk = transaksi.pesan_struk || 'Terima Kasih!';
                 const kasir      = transaksi.username || 'Kasir';
                 const metodeStr  = (transaksi.metode_pembayaran || transaksi.metode_bayar || 'CASH').toUpperCase();
@@ -226,7 +227,13 @@
 
                 const buatRataKiriKanan = (kiri, kanan) => kiri + " ".repeat(Math.max(1, 32 - kiri.length - kanan.length)) + kanan;
 
-                let strukText = `${buatTengah(namaCafe.toUpperCase())}\n${buatTengah(alamatCafe)}\n${buatTengah(waktuTransaksi)}\n--------------------------------\n${buatRataKiriKanan(`No    : #${transaksi.id_transaksi || idTransaksi}`, "")}\n${buatRataKiriKanan(`Plgn  : ${transaksi.nama_pelanggan || transaksi.pelanggan}`, "")}\n${buatRataKiriKanan(`Kasir : ${kasir}`, "")}\n--------------------------------\n`;
+                let headerStruk = `${buatTengah(namaCafe.toUpperCase())}\n${buatTengah(alamatCafe)}\n`;
+                if (noTelp && noTelp.trim() !== '') {
+                    headerStruk += `${buatTengah("Telp: " + noTelp)}\n`; 
+                }
+                headerStruk += `${buatTengah(waktuTransaksi)}\n--------------------------------\n`;
+
+                let strukText = headerStruk + `${buatRataKiriKanan(`No    : #${transaksi.id_transaksi || idTransaksi}`, "")}\n${buatRataKiriKanan(`Plgn  : ${transaksi.nama_pelanggan || transaksi.pelanggan}`, "")}\n${buatRataKiriKanan(`Kasir : ${kasir}`, "")}\n--------------------------------\n`;
 
                 let items = typeof transaksi.items === 'string' ? JSON.parse(transaksi.items || '[]') : (transaksi.items || []);
                 items.forEach(item => {
